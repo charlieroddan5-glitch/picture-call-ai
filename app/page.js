@@ -14,17 +14,51 @@ export default function Home() {
     if (!file) return;
 
     setNumbers([]);
+    setCalled({});
     setMessage("");
 
-    const reader = new FileReader();
+    const compressedImage = await compressImage(file);
 
-    reader.onloadend = async () => {
-      const imageDataUrl = reader.result;
-      setImagePreview(imageDataUrl);
-      await extractNumbers(imageDataUrl);
-    };
+    setImagePreview(compressedImage);
+    await extractNumbers(compressedImage);
+  }
 
-    reader.readAsDataURL(file);
+  function compressImage(file) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        img.src = e.target.result;
+      };
+
+      reader.onerror = reject;
+
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const maxWidth = 1200;
+
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        resolve(canvas.toDataURL("image/jpeg", 0.65));
+      };
+
+      img.onerror = reject;
+
+      reader.readAsDataURL(file);
+    });
   }
 
   async function extractNumbers(imageDataUrl) {
@@ -67,12 +101,9 @@ export default function Home() {
   }
 
   function cleanNumbers(text) {
-    const lines = text
-      .split(/\n|,/)
-      .map((line) => line.trim())
-      .filter(Boolean);
+    const possibleNumbers = text.match(/(?:\+44|44|0|7)[\d\s().-]{8,20}/g) || [];
 
-    const cleaned = lines
+    const cleaned = possibleNumbers
       .map((number) => number.replace(/[^\d+]/g, ""))
       .map((number) => {
         if (number.startsWith("+44")) return number;
