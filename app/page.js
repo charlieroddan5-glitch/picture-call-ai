@@ -36,7 +36,7 @@ export default function Home() {
 
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        const maxWidth = 800; // REDUCED from 1200 - still readable for text
+        const maxWidth = 600;
 
         let width = img.width;
         let height = img.height;
@@ -52,8 +52,7 @@ export default function Home() {
         const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0, width, height);
 
-        // REDUCED quality from 0.65 to 0.4 - dramatic size reduction, still readable for numbers
-        resolve(canvas.toDataURL("image/jpeg", 0.4));
+        resolve(canvas.toDataURL("image/jpeg", 0.3));
       };
 
       img.onerror = reject;
@@ -68,10 +67,6 @@ export default function Home() {
 
     try {
       const base64Image = imageDataUrl.split(",")[1];
-
-      // Log base64 size for debugging (remove later if you want)
-      const sizeInBytes = Math.round((base64Image.length * 3) / 4);
-      console.log(`Base64 image size: ${(sizeInBytes / 1024 / 1024).toFixed(2)}MB`);
 
       const response = await fetch("/api/extract-numbers", {
         method: "POST",
