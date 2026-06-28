@@ -29,12 +29,14 @@ export async function POST(request) {
             },
             {
               type: "text",
-              text: `Extract every UK phone number from this image.
-Return only phone numbers.
-One phone number per line.
-Do not include names.
-Do not include explanations.
-If there are no phone numbers, return an empty response.`,
+              text: `Extract every contact from this image.
+For each contact, extract the name and phone number.
+Return in format: NAME - NUMBER
+One contact per line.
+Example:
+David Evans - 01633262674
+Ecc Bricklaying - 07401067389
+If there are no contacts, return an empty response.`,
             },
           ],
         },
