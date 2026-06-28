@@ -36,7 +36,7 @@ export default function Home() {
 
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        const maxWidth = 900;
+        const maxWidth = 1100;
 
         let width = img.width;
         let height = img.height;
@@ -52,7 +52,7 @@ export default function Home() {
         const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0, width, height);
 
-        resolve(canvas.toDataURL("image/jpeg", 0.5));
+        resolve(canvas.toDataURL("image/jpeg", 0.65));
       };
 
       img.onerror = reject;
@@ -101,14 +101,15 @@ export default function Home() {
   }
 
   function cleanNumbers(text) {
-    const possibleNumbers = text.match(/(?:\+44|44|0|7)[\d\s().-]{8,20}/g) || [];
+    // Match UK phone numbers: mobiles (07/447) and landlines (01/02)
+    const possibleNumbers = text.match(/(?:(?:\+44|0)(?:1|2|7)|44(?:1|2|7))\d[\d\s().-]{7,11}/g) || [];
 
     const cleaned = possibleNumbers
       .map((number) => number.replace(/[^\d+]/g, ""))
       .map((number) => {
         if (number.startsWith("+44")) return number;
         if (number.startsWith("44")) return "+" + number;
-        if (number.startsWith("7") && number.length === 10) return "0" + number;
+        if (number.startsWith("0")) return number;
         return number;
       })
       .filter((number) => {
