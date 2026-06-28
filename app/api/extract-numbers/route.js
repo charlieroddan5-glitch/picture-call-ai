@@ -13,7 +13,7 @@ export async function POST(request) {
     }
 
     const message = await anthropic.messages.create({
-      model: "claude-3-5-sonnet-latest",
+      model: "claude-sonnet-4-6",
       max_tokens: 1000,
       messages: [
         {
@@ -30,7 +30,6 @@ export async function POST(request) {
             {
               type: "text",
               text: `Extract every UK phone number from this image.
-
 Return only phone numbers.
 One phone number per line.
 Do not include names.
@@ -43,14 +42,13 @@ If there are no phone numbers, return an empty response.`,
     });
 
     const numbers = message.content
-      .map((item) => item.type === "text" ? item.text : "")
+      .map((item) => (item.type === "text" ? item.text : ""))
       .join("\n")
       .trim();
 
     return Response.json({ numbers });
   } catch (error) {
     console.error("Claude error:", error);
-
     return Response.json(
       { error: error.message || "Failed to extract numbers" },
       { status: 500 }
