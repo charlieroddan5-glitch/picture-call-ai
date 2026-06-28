@@ -101,21 +101,32 @@ export default function Home() {
   }
 
   function cleanNumbers(text) {
-    // Match UK phone numbers: mobiles (07/447) and landlines (01/02)
-    const possibleNumbers = text.match(/(?:(?:\+44|0)(?:1|2|7)|44(?:1|2|7))\d[\d\s().-]{7,11}/g) || [];
+    // Process line-by-line to avoid combining fragments from different lines
+    const lines = text.split('\n');
+    const cleaned = [];
 
-    const cleaned = possibleNumbers
-      .map((number) => number.replace(/[^\d+]/g, ""))
-      .map((number) => {
-        if (number.startsWith("+44")) return number;
-        if (number.startsWith("44")) return "+" + number;
-        if (number.startsWith("0")) return number;
-        return number;
-      })
-      .filter((number) => {
-        const digits = number.replace(/\D/g, "");
-        return digits.length >= 10 && digits.length <= 13;
-      });
+    for (let line of lines) {
+      // Clean the line: remove all non-digits except + at start
+      line = line.trim().replace(/[^\d+]/g, "");
+      
+      // Match exact UK phone number patterns
+      // Patterns: 0/+44 followed by 1/2/7 and then 9-10 more digits
+      if (line.match(/^(\+?44|0)(1|2|7)\d{9,10}$/)) {
+        const digits = line.replace(/\D/g, "");
+        
+        // Ensure it's valid length (10-13 digits)
+        if (digits.length >= 10 && digits.length <= 13) {
+          // Normalize format
+          if (line.startsWith("+44")) {
+            cleaned.push(line);
+          } else if (line.startsWith("44")) {
+            cleaned.push("+" + line);
+          } else if (line.startsWith("0")) {
+            cleaned.push(line);
+          }
+        }
+      }
+    }
 
     return [...new Set(cleaned)];
   }
