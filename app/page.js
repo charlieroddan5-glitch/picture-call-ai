@@ -317,7 +317,6 @@ export default function Home() {
           <input
             type="file"
             accept="image/*"
-            capture="environment"
             onChange={handleImageUpload}
             style={{ display: "none" }}
           />
@@ -366,7 +365,6 @@ export default function Home() {
                 <input
                   type="file"
                   accept="image/*"
-                  capture="environment"
                   onChange={handleImageUpload}
                   style={{ display: "none" }}
                 />
