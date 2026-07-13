@@ -10,6 +10,7 @@ export default function Home() {
   const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [summary, setSummary] = useState(null);
 
   async function handleImageUpload(event) {
     const file = event.target.files[0];
@@ -153,6 +154,7 @@ export default function Home() {
       setMessage("No contacts in queue");
       return;
     }
+    setSummary(null);
     setDialing(true);
     setCurrentIndex(0);
     setMessage("");
@@ -180,10 +182,22 @@ export default function Home() {
       booked: Object.values(dispositions).filter(d => d === "booked").length
     };
 
-    setMessage(
-      `✓ Complete! No Answer: ${stats.noAnswer} | Not Interested: ${stats.notInterested} | Interested: ${stats.interested} | Booked: ${stats.booked}`
-    );
+    // Capture the actual no-answer contacts (not just the count) so they can be redialed
+    const noAnswerContacts = contacts.filter((c, idx) => dispositions[idx] === "noAnswer");
+
+    setSummary({ ...stats, noAnswerContacts });
+    setMessage("");
     setDialing(false);
+  }
+
+  function handleRedialNoAnswers() {
+    if (!summary || summary.noAnswerContacts.length === 0) return;
+
+    setContacts(summary.noAnswerContacts);
+    setDispositions({});
+    setCurrentIndex(0);
+    setSummary(null);
+    setDialing(true);
   }
 
   function resetAll() {
@@ -193,6 +207,7 @@ export default function Home() {
     setDialing(false);
     setImagePreview(null);
     setMessage("");
+    setSummary(null);
   }
 
   function resetCall() {
@@ -311,6 +326,25 @@ export default function Home() {
       <div style={styles.container}>
         <h1 style={styles.title}>📞 Call Queue</h1>
         <p style={styles.subtitle}>Scan calling lists, build your queue, then dial.</p>
+
+        {/* SUMMARY SCREEN - shown after finishing a calling round */}
+        {summary && (
+          <div style={styles.summaryBox}>
+            <h2 style={styles.summaryTitle}>✓ Round Complete</h2>
+            <div style={styles.summaryStats}>
+              <div style={styles.summaryStat}>❌ No Answer: <b>{summary.noAnswer}</b></div>
+              <div style={styles.summaryStat}>👋 Not Interested: <b>{summary.notInterested}</b></div>
+              <div style={styles.summaryStat}>✋ Interested: <b>{summary.interested}</b></div>
+              <div style={styles.summaryStat}>✅ Booked: <b>{summary.booked}</b></div>
+            </div>
+
+            {summary.noAnswer > 0 && (
+              <button onClick={handleRedialNoAnswers} style={styles.redialBtn}>
+                🔁 Redial No Answers ({summary.noAnswer})
+              </button>
+            )}
+          </div>
+        )}
 
         <label style={styles.uploadButton}>
           📸 Scan / Upload List
@@ -447,6 +481,44 @@ const styles = {
     background: "#fef3c7",
     marginBottom: "16px",
     fontSize: "14px"
+  },
+  summaryBox: {
+    padding: "16px",
+    borderRadius: "10px",
+    background: "#f0fdf4",
+    border: "2px solid #16a34a",
+    marginBottom: "16px"
+  },
+  summaryTitle: {
+    margin: "0 0 12px 0",
+    color: "#166534",
+    fontSize: "18px",
+    textAlign: "center"
+  },
+  summaryStats: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "8px",
+    marginBottom: "12px",
+    fontSize: "14px",
+    color: "#1f2937"
+  },
+  summaryStat: {
+    background: "white",
+    padding: "8px",
+    borderRadius: "6px",
+    border: "1px solid #e5e7eb"
+  },
+  redialBtn: {
+    width: "100%",
+    background: "#f59e0b",
+    color: "white",
+    padding: "14px",
+    borderRadius: "8px",
+    fontWeight: "bold",
+    border: "none",
+    cursor: "pointer",
+    fontSize: "15px"
   },
   queueSection: {
     marginTop: "20px"
